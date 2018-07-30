@@ -27,27 +27,22 @@ curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microso
 sudo cp ./microsoft.gpg /etc/apt/trusted.gpg.d/
 
 # Perform apt upgrade
-sudo apt-get upgrade
+sudo apt-get upgrade -y
 
 # Install the container runtime
-sudo apt-get update
+sudo apt-get update -y
 
 sudo apt-get install -y moby-engine
 sudo apt-get install -y moby-cli
 
-sudo apt-get update
 sudo apt-get install -y iotedge
 
 sudo systemctl restart iotedge
+
+CONNID=$(awk -F: /${DEVICE}/'{print $2}' conf/edge-devices.txt)
+sudo sed -i -E "s/(device_connection_string:).*/\1 \"${CONNID}\"/g" /etc/iotedge/config.yaml
 
 # verify the installation
 systemctl status iotedge
 
 sudo iotedge list
-
-# install iotedgectl
-apt-get install -y python-pip
-pip install -U azure-iot-edge-runtime-ctl
-
-CONNID=$(awk -F: /${DEVICE}/'{print $2}' conf/edge-devices.txt)
-iotedgectl setup --connection-string "${CONNID}" --nopass
